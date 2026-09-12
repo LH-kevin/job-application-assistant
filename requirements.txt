@@ -1,0 +1,8 @@
+# Core (used by search_target_companies.py / find_career_page.py)
+requests>=2.31
+beautifulsoup4>=4.12
+
+# Optional — only needed if you use scripts/ats_form_filler.py to fill
+# application forms with browser automation. After installing, also run:
+#   playwright install chromium
+playwright>=1.40
