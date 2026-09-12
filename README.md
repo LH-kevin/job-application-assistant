@@ -1,89 +1,216 @@
 # job-application-assistant
 
-*[中文说明](README.zh-CN.md)*
+**个人求职 AI Skill｜适用于 Claude / Codex**
 
-A Claude / Codex skill for **personal** job hunting: find companies hiring for a role, vet them (financial health, legal disputes, employee reviews) before you apply, track every application in one place, and get help filling out application forms — with a human confirming every real submission.
+*[English](README.en.md)*
 
-This is a tool for one person managing their own job search, not a recruiting SaaS product. There's no server, no account, no cloud sync — everything lives in a local JSON file on your machine.
+<p align="center">
+  <img src="docs/readme-hero.png" alt="job-application-assistant：个人求职 AI Skill" width="100%">
+</p>
 
-## What it looks like
+> **一句话看懂：** 让 AI 帮你**发现目标公司 → 投递前做背调 → 谨慎协助填写申请表 → 统一追踪所有投递**，而真正的提交始终由你本人确认。
 
-**Application ledger** — every company you've applied to, current status, and a risk badge from due diligence, at a glance.
+这是一个给**个人求职者**使用的 Claude / Codex Skill，不是招聘 SaaS。  
+没有服务器、没有账号体系、没有云同步；你的投递记录保存在本机 JSON 文件中。
 
-![Application dashboard](docs/dashboard-screenshot.png)
+---
 
-**Company due-diligence report** — legal/judicial risk, employee sentiment, and social-media mentions, compiled into one page before you decide whether to keep pursuing a role.
+## 30 秒看懂怎么用
 
-![Company background report](docs/company-report-screenshot.png)
+### 1. 把 Skill 装进 Claude / Codex
 
-Both pages are self-contained static HTML — no server, generated fresh from your own data every time you run the scripts.
+- **Claude（桌面端 / Web）**：`Settings → Capabilities → Skills`，上传本项目文件夹或打包后的 `.skill` 文件。
+- **Claude Code / Codex**：把本项目放入对应工具的 skills 目录。
 
-## What it does
+### 2. 直接告诉它你想找什么岗位
 
-- **Find openings** — searches job aggregators for companies hiring for a given role, then prefers each company's own official careers page over the aggregator listing (`scripts/search_target_companies.py`, `scripts/find_career_page.py`).
-- **Vet the company first** — pulls together public signal on financial health, legal disputes, and employee sentiment (知乎/企查查/天眼查/裁判文书网/看准网/小红书/抖音) into a sourced, balanced report before you invest time applying (`references/company_due_diligence.md`, `scripts/due_diligence_report.py`).
-- **Fill application forms, carefully** — a Playwright-based helper that fills known ATS forms (Greenhouse, Lever, Workday, …), always in a *visible* browser window so you can solve any CAPTCHA yourself, and never submits without an explicit confirmation step (`scripts/ats_form_filler.py`).
-- **Track everything locally** — a JSON-backed CLI tracker with duplicate detection, follow-up reminders, and a generated HTML dashboard (`scripts/track_applications.py`).
+例如：
 
-See [`SKILL.md`](SKILL.md) for the full step-by-step workflow this skill follows, and [`references/`](references/) for the design notes behind each piece (including which existing open-source auto-apply tools this borrowed patterns from, and deliberately did *not* borrow).
+```text
+帮我寻找 AI Agent 开发相关岗位。
+先找正在招聘的公司，优先给出官网招聘页；
+准备投递前先做公司背景调查；
+我确认后再协助填写申请表，并把投递记录加入看板。
+```
 
-## Non-negotiable ground rules
+### 3. Skill 按流程帮你推进
 
-- Never auto-submits an application without the user explicitly confirming that specific batch.
-- Never attempts to solve or bypass a CAPTCHA — it stops and hands control back to you.
-- Never fabricates resume experience or invents due-diligence findings; everything is sourced.
-- Doesn't fire off applications in a tight, unattended loop — batches with review checkpoints instead.
+```text
+找岗位
+   ↓
+确认目标公司
+   ↓
+公司背调
+   ↓
+决定是否继续
+   ↓
+辅助填写申请表
+   ↓
+你本人确认提交
+   ↓
+记录投递 + 后续跟进
+```
 
-## Install
+**你不需要每天重复复制岗位信息、手动整理公司风险、再单独维护 Excel。**
 
-This is packaged as a **Claude Skill** (`SKILL.md` + `scripts/` + `references/`). To use it:
+---
 
-1. In Claude (desktop or web), go to **Settings → Capabilities → Skills** and upload this folder (or the packaged `.skill` file, if you have one).
-2. For Claude Code / Codex, drop this folder into your skills directory as documented by that tool.
+## 它能帮你做什么
 
-### Python dependencies
+|  | 能力 | 你得到什么 |
+|---|---|---|
+| 🔎 | **找岗位** | 按岗位关键词寻找正在招聘的公司，并优先定位公司的**官方招聘页** |
+| 🏢 | **先背调再投递** | 汇总财务健康度、法律/司法风险、员工口碑和社交媒体公开信息 |
+| 📝 | **谨慎辅助填表** | 使用可见浏览器协助填写常见 ATS 表单，如 Greenhouse、Lever、Workday |
+| 📊 | **统一追踪投递** | 集中记录公司、岗位、渠道、状态、风险标签与跟进提醒 |
+| 🔁 | **避免重复投递** | 投递前检查是否已经申请过同一家公司 |
+| 🔒 | **数据本地保存** | 无账号、无服务器、无云同步，求职记录保存在你的电脑里 |
 
-The tracking and report scripts (`track_applications.py`, `due_diligence_report.py`) have **no dependencies** beyond the Python standard library.
+---
 
-The search and form-filling scripts need:
+## 真实输出长这样
+
+### 投递记录看板
+
+一眼查看所有投递过的公司、当前进度、渠道、更新时间，以及公司背调风险标签。
+
+<p align="center">
+  <img src="docs/dashboard-screenshot.png" alt="投递记录看板" width="100%">
+</p>
+
+### 公司背调报告
+
+在决定是否继续投递或面试之前，把法律/司法风险、员工口碑和社交媒体公开评价集中到一份报告中。
+
+<p align="center">
+  <img src="docs/company-report-screenshot.png" alt="公司背景调查报告" width="78%">
+</p>
+
+两个页面都是自包含静态 HTML：不需要服务器，每次运行脚本都会根据你的本地数据重新生成。
+
+---
+
+## 为什么它不是“一键海投工具”
+
+这个项目刻意保留了**人工确认**。
+
+- **不会自动提交申请**：每一批真实投递都必须由你明确确认。
+- **不会破解或绕过验证码**：遇到 CAPTCHA 会停止并把控制权交还给你。
+- **不会编造简历经历**：不会为了“提高匹配度”虚构事实。
+- **不会编造背调结论**：背调结果必须有公开来源。
+- **不会无人值守连续海投**：流程中保留人工检查节点。
+
+目标不是“投得越多越好”，而是让求职过程**更有信息、更可控、更容易持续跟进**。
+
+---
+
+## 安装
+
+本项目以 **Claude Skill** 形式组织：
+
+```text
+SKILL.md
+scripts/
+references/
+```
+
+### Claude
+
+1. 打开 Claude。
+2. 进入 `Settings → Capabilities → Skills`。
+3. 上传项目文件夹，或上传打包后的 `.skill` 文件。
+
+### Claude Code / Codex
+
+按照对应工具的 Skill 目录规范，把本项目放入 skills 目录即可。
+
+---
+
+## Python 依赖
+
+投递追踪和报告生成：
+
+- `scripts/track_applications.py`
+- `scripts/due_diligence_report.py`
+
+只依赖 Python 标准库。
+
+岗位搜索与 ATS 表单辅助需要：
 
 ```bash
 pip install -r requirements.txt
-playwright install chromium   # only if you'll use ats_form_filler.py
+playwright install chromium
 ```
 
-## Quick start (CLI)
+只有使用 `ats_form_filler.py` 时才需要安装 Chromium。
+
+---
+
+## 命令行快速体验
 
 ```bash
-# Track an application
+# 记录一条投递
 python scripts/track_applications.py add \
   --company "Acme Corp" --role "Frontend Engineer" \
   --channel official_site --url "https://acme.com/careers/123" \
   --status submitted
 
-# Check you haven't already applied before starting a new one
+# 检查是否已经投递过
 python scripts/track_applications.py check --company "Acme Corp"
 
-# See what needs following up on
+# 查看需要跟进的岗位
 python scripts/track_applications.py followups --days 7
 
-# Attach a due-diligence report to a company
+# 为公司关联背调报告
 python scripts/due_diligence_report.py --input acme_findings.json \
   --out acme_report.html --format html
+
 python scripts/track_applications.py diligence \
   --company "Acme Corp" --role "Frontend Engineer" \
-  --risk medium --report acme_report.html --summary "1 labor dispute judgment"
+  --risk medium --report acme_report.html --summary "1起劳动仲裁判决"
 
-# Generate the dashboard
+# 生成投递看板
 python scripts/track_applications.py dashboard --out dashboard.html
 ```
 
-Full command reference is in each script's `--help` and docstring.
+完整命令参数见各脚本自带的 `--help` 和文件头部说明。
+
+---
+
+## 项目工作流与设计说明
+
+完整分步工作流见 [`SKILL.md`](SKILL.md)。
+
+各模块设计考虑、参考过的开源工具，以及**刻意没有采用的自动海投模式**，见 [`references/`](references/)。
+
+---
+
+## 数据与隐私
+
+这是一个**个人本地求职工具**：
+
+- 无服务器
+- 无账号体系
+- 无云同步
+- 投递数据保存在本机 JSON
+- 真实提交由用户本人确认
+
+---
 
 ## Disclaimer
 
-This is a personal productivity tool, not legal, financial, or career advice. Due-diligence reports aggregate public information and social-media commentary — verify anything that actually matters (a specific lawsuit, a company's registration status) against the primary source before acting on it. You are responsible for complying with the terms of service of any site this tool interacts with.
+这是个人效率工具，不构成法律、财务或职业规划建议。
+
+公司背调报告汇总的是公开信息和社交媒体评论。若某条信息会影响你的重要决定，例如具体诉讼、公司注册状态等，请在行动前到权威或一手来源再次核实。
+
+你需要自行遵守与本工具交互的网站服务条款。
+
+---
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+如果这个项目对你的求职流程有帮助，欢迎 **Star**、提交 **Issue**，或者分享你的使用反馈。
